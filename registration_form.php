@@ -70,21 +70,21 @@ class registration_form extends moodleform {
         var_dump($data);
         // Create a new user and store the data in the database.
         $newuser = new stdClass();  // is a generic class in PHP used to create objects with arbitrary properties. The properties are dynamic, which means you can add any property to the object without any restrictions.
-        $newuser->username = $data['email'];
+        $newuser->username = $data->email;
         // Generate a temporary password with 8 characters.
-        $temporary_password = '12345678';//random_string(8);
+        $temporary_password = 'Acce$$1234';//random_string(8);
         $newuser->password = hash_internal_user_password($temporary_password); // Hash the temporary password for security.
-        $newuser->firstname= $data['name'];
-        $newuser->lastname= $data['surname'];
-        $newuser->email= $data['email'];
-        $newuser->country= $data['country'];
-        $newuser->mobile= $data['mobile'];
-        $newuser->auth= 'manual';
+        $newuser->firstname= $data->name;
+        $newuser->lastname= $data->surname;
+        $newuser->email= $data->email;
+        //$newuser->country= $data->country;
+        $newuser->mobile= $data->mobile;
+        $newuser->auth= 'email';
 
         // Insert the new user into the database.
         $newuserid = $DB->insert_record('user', $newuser);
         // Send the temporary password to the user's email for them to log in and change it.
-        send_temporary_password_to_user_email($temporary_password, $data['email']);
+        send_temporary_password_to_user_email($temporary_password, $data->email);
 
         if ($newuserid) {
             // User registration successful.
@@ -95,8 +95,10 @@ class registration_form extends moodleform {
             // Redirect the user to the custom "Thank You" page you created.
             redirect($CFG->wwwroot . '/local/registration_form/thank_you_page.php');
         } else {
-            // Handle the error or redirect back to the form with an error message.
-            // For example, you can use Moodle's messaging system to display errors.
+            // Display the SQL statement and the error message for debugging.
+			echo "SQL Error: " . $DB->sql_error();
+			echo "Generated SQL: " . $DB->last_sql();
+			
             $this->display_error_message('User registration failed. Please try again later.');
             return false; // Return false to indicate that the process_data failed.
         }
