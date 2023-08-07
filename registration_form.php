@@ -66,34 +66,35 @@ class registration_form extends moodleform {
 
     // Process form submission.
     public function process_data($data) {
-        global $DB;  //is a global variable that represents the database connection object.
+        global $CFG, $DB;  //is a global variable that represents the database connection object.
         var_dump($data);
         // Create a new user and store the data in the database.
         $newuser = new stdClass();  // is a generic class in PHP used to create objects with arbitrary properties. The properties are dynamic, which means you can add any property to the object without any restrictions.
         $newuser->username = $data->email;
         // Generate a temporary password with 8 characters.
-        $temporary_password = 'Acce$$1234';//random_string(8);
+        $temporary_password = random_string(8);
         $newuser->password = hash_internal_user_password($temporary_password); // Hash the temporary password for security.
+		$newuser->passwordchange = 1;
+		$newuser->confirmed=1;
         $newuser->firstname= $data->name;
         $newuser->lastname= $data->surname;
         $newuser->email= $data->email;
-        //$newuser->country= $data->country;
+        $newuser->country= $data->country;
         $newuser->mobile= $data->mobile;
-        $newuser->auth= 'email';
+        $newuser->auth= 'manual';
+		$newuser->mnethostid = 1;
 
         // Insert the new user into the database.
         $newuserid = $DB->insert_record('user', $newuser);
         // Send the temporary password to the user's email for them to log in and change it.
-        send_temporary_password_to_user_email($temporary_password, $data->email);
+        $this->send_temporary_password_to_user_email($temporary_password, $data->email);
 
         if ($newuserid) {
             // User registration successful.
 
-            // Display a success message using Moodle's messaging system.
-            \core\notification::add_success('User registered successfully.');
-
             // Redirect the user to the custom "Thank You" page you created.
-            redirect($CFG->wwwroot . '/local/registration_form/thank_you_page.php');
+            //redirect($CFG->wwwroot . '/local/registration_form/thank_you_page.php');
+			echo "Thank you for registering! Your account has been created successfully.";
         } else {
             // Display the SQL statement and the error message for debugging.
 			echo "SQL Error: " . $DB->sql_error();
